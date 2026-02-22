@@ -44,6 +44,8 @@ func NewPostresDB(cfg config.Config) (*sql.DB, error) {
 		return nil, err
 	}
 
+	db.SetMaxOpenConns(50)
+
 	if err = db.Ping(); err != nil {
 		return nil, err
 	}
