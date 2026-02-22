@@ -15,6 +15,7 @@ import (
 	_ "subscriptions-api/docs"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/golang-migrate/migrate/v4"
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
@@ -30,6 +31,18 @@ func main() {
 		log.Fatal("Error on creating Postres connection pool.", err)
 	} else {
 		log.Println("Postgres connected!")
+	}
+
+	err = database.RunMigrations(config.AppConfig)
+
+	if err != nil {
+		if err == migrate.ErrNoChange {
+			log.Println("No new migrations.")
+		} else {
+			log.Fatal("Error on migrations running.", err)
+		}
+	} else {
+		log.Println("Migrations complete!")
 	}
 
 	textHandler := slog.NewTextHandler(os.Stdout, nil)

@@ -5,8 +5,27 @@ import (
 	"fmt"
 	"subscriptions-api/internal/config"
 
+	"github.com/golang-migrate/migrate/v4"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/jackc/pgx/v5/stdlib"
 )
+
+func RunMigrations(cfg config.Config) error {
+	m, err := migrate.New(
+		"file://migrations",
+		GetPostgresDsn(cfg),
+	)
+
+	if err != nil {
+		return err
+	}
+
+	defer m.Close()
+
+	err = m.Up()
+	return err
+}
 
 func GetPostgresDsn(cfg config.Config) string {
 	return fmt.Sprintf(
