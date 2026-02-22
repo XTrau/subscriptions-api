@@ -1,0 +1,41 @@
+package main
+
+import (
+	"log"
+	"log/slog"
+	"net/http"
+	"os"
+	"subscriptions-api/internal/config"
+	"subscriptions-api/internal/database"
+	"subscriptions-api/internal/handlers"
+	"subscriptions-api/internal/middlewares"
+	"subscriptions-api/internal/repositories"
+	"subscriptions-api/internal/usecases"
+
+	"github.com/go-chi/chi/v5"
+)
+
+func main() {
+	postgres, err := database.NewPostresDB(config.AppConfig)
+
+	if err != nil {
+		log.Fatal("Error on creating Postres connection pool.", err)
+	} else {
+		log.Println("Postgres connected!")
+	}
+
+	textHandler := slog.NewTextHandler(os.Stdout, nil)
+	logger := slog.New(textHandler)
+
+	repo := repositories.NewSubscriptionsPostgresRepository(postgres)
+	ucases := usecases.NewSubscriptionUseCases(repo)
+	sr := handlers.NewSubscriptionsRoutes(ucases, logger)
+
+	r := chi.NewRouter()
+	r.Use(middlewares.LoggingMiddleware(logger))
+	sr.RegisterRoutes(r)
+
+	log.Println("Server started!")
+
+	http.ListenAndServe(":8080", r)
+}
