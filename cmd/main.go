@@ -12,8 +12,16 @@ import (
 	"subscriptions-api/internal/repositories"
 	"subscriptions-api/internal/usecases"
 
+	_ "subscriptions-api/docs"
+
 	"github.com/go-chi/chi/v5"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
+
+// @title Subscriptions API
+// @version 1.0
+// @host     localhost:8080
+// @BasePath /
 
 func main() {
 	postgres, err := database.NewPostresDB(config.AppConfig)
@@ -33,6 +41,8 @@ func main() {
 
 	r := chi.NewRouter()
 	r.Use(middlewares.LoggingMiddleware(logger))
+
+	r.Get("/swagger/*", httpSwagger.WrapHandler)
 	sr.RegisterRoutes(r)
 
 	log.Println("Server started!")

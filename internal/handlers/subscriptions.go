@@ -36,6 +36,17 @@ func (sr *SubscriptionsRoutes) RegisterRoutes(r chi.Router) {
 	})
 }
 
+// CreateSubscription godoc
+// @Summary Create subscription
+// @Description Create new subscription
+// @Tags subscriptions
+// @Accept json
+// @Produce json
+// @Param request body types.SubscriptionRequest true "Subscription data"
+// @Success 201 {object} types.SubscriptionResponse
+// @Failure 400 {string} string
+// @Failure 500 {string} string
+// @Router /subscriptions [post]
 func (sr *SubscriptionsRoutes) CreateSubscription(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 
@@ -46,7 +57,7 @@ func (sr *SubscriptionsRoutes) CreateSubscription(w http.ResponseWriter, r *http
 
 	var subReq types.SubscriptionRequest
 	err = json.Unmarshal(body, &subReq)
-	if err != nil {
+	if err != nil || subReq.Price < 0 {
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
@@ -67,18 +78,29 @@ func (sr *SubscriptionsRoutes) CreateSubscription(w http.ResponseWriter, r *http
 	}
 }
 
+// GetSubscriptions godoc
+// @Summary Get subscriptions list
+// @Description Get paginated list of subscriptions
+// @Tags subscriptions
+// @Produce json
+// @Param page query int true "Page number"
+// @Param count query int true "Items per page"
+// @Success 200 {array} types.SubscriptionResponse
+// @Failure 400 {string} string
+// @Failure 500 {string} string
+// @Router /subscriptions [get]
 func (sr *SubscriptionsRoutes) GetSubscriptions(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
 	page, err := strconv.Atoi(q.Get("page"))
 
-	if err != nil {
+	if err != nil || page <= 0 {
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
 
 	count, err := strconv.Atoi(q.Get("count"))
 
-	if err != nil {
+	if err != nil || count <= 0 {
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
@@ -99,10 +121,21 @@ func (sr *SubscriptionsRoutes) GetSubscriptions(w http.ResponseWriter, r *http.R
 	}
 }
 
+// GetSubscription godoc
+// @Summary Get subscription by ID
+// @Description Get subscription by ID
+// @Tags subscriptions
+// @Produce json
+// @Param id path int true "Subscription ID"
+// @Success 200 {object} types.SubscriptionResponse
+// @Failure 400 {string} string
+// @Failure 404 {string} string
+// @Failure 500 {string} string
+// @Router /subscriptions/{id} [get]
 func (sr *SubscriptionsRoutes) GetSubscription(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(chi.URLParam(r, "id"))
 
-	if err != nil {
+	if err != nil || id <= 0 {
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
@@ -127,9 +160,22 @@ func (sr *SubscriptionsRoutes) GetSubscription(w http.ResponseWriter, r *http.Re
 	}
 }
 
+// UpdateSubscription godoc
+// @Summary Update subscription
+// @Description Update subscription by ID
+// @Tags subscriptions
+// @Accept json
+// @Produce json
+// @Param id path int true "Subscription ID"
+// @Param request body types.SubscriptionRequest true "Updated subscription data"
+// @Success 200 {object} types.SubscriptionResponse
+// @Failure 400 {string} string
+// @Failure 404 {string} string
+// @Failure 500 {string} string
+// @Router /subscriptions/{id} [put]
 func (sr *SubscriptionsRoutes) UpdateSubscription(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(chi.URLParam(r, "id"))
-	if err != nil {
+	if err != nil || id <= 0 {
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
@@ -142,7 +188,8 @@ func (sr *SubscriptionsRoutes) UpdateSubscription(w http.ResponseWriter, r *http
 
 	var subReq types.SubscriptionRequest
 	err = json.Unmarshal(body, &subReq)
-	if err != nil {
+
+	if err != nil || subReq.Price < 0 {
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
@@ -167,9 +214,20 @@ func (sr *SubscriptionsRoutes) UpdateSubscription(w http.ResponseWriter, r *http
 	}
 }
 
+// DeleteSubscription godoc
+// @Summary Delete subscription
+// @Description Delete subscription by ID
+// @Tags subscriptions
+// @Produce json
+// @Param id path int true "Subscription ID"
+// @Success 200 {object} types.SubscriptionResponse
+// @Failure 400 {string} string
+// @Failure 404 {string} string
+// @Failure 500 {string} string
+// @Router /subscriptions/{id} [delete]
 func (sr *SubscriptionsRoutes) DeleteSubscription(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(chi.URLParam(r, "id"))
-	if err != nil {
+	if err != nil || id <= 0 {
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
@@ -194,6 +252,19 @@ func (sr *SubscriptionsRoutes) DeleteSubscription(w http.ResponseWriter, r *http
 	}
 }
 
+// GetTotalStats godoc
+// @Summary Get total subscription stats
+// @Description Get total subscription price with optional filters
+// @Tags subscriptions
+// @Produce json
+// @Param user_id query string false "User ID" format(uuid) example(550e8400-e29b-41d4-a716-446655440000)
+// @Param service_name query string false "Service name"
+// @Param start_date query string false "Start date (MM-YYYY)"
+// @Param end_date query string false "End date (MM-YYYY)"
+// @Success 200 {object} types.TotalStatsResponse
+// @Failure 400 {string} string
+// @Failure 500 {string} string
+// @Router /subscriptions/total [get]
 func (sr *SubscriptionsRoutes) GetTotalStats(w http.ResponseWriter, r *http.Request) {
 	q := r.URL.Query()
 
