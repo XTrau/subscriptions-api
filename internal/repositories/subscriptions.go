@@ -2,8 +2,9 @@ package repositories
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
-	"subscriptions-api/internal/errors"
+	"subscriptions-api/internal/apperrors"
 	"subscriptions-api/internal/types"
 	"time"
 )
@@ -74,8 +75,8 @@ func (sr SubscriptionsPostgresRepository) GetSubscription(id int) (types.Subscri
 	var startDate time.Time
 
 	if err := r.Scan(&serviceName, &price, &userID, &startDate); err != nil {
-		if err == sql.ErrNoRows {
-			return types.SubscriptionResponse{}, errors.SubscriptionNotFound
+		if errors.Is(err, sql.ErrNoRows) {
+			return types.SubscriptionResponse{}, apperrors.SubscriptionNotFound
 		}
 		return types.SubscriptionResponse{}, err
 	}
@@ -145,8 +146,8 @@ func (sr SubscriptionsPostgresRepository) UpdateSubscription(id int, sub types.S
 	var startDate time.Time
 
 	if err := r.Scan(&serviceName, &price, &userID, &startDate); err != nil {
-		if err == sql.ErrNoRows {
-			return types.SubscriptionResponse{}, errors.SubscriptionNotFound
+		if errors.Is(err, sql.ErrNoRows) {
+			return types.SubscriptionResponse{}, apperrors.SubscriptionNotFound
 		}
 		return types.SubscriptionResponse{}, err
 	}
@@ -174,8 +175,8 @@ func (sr SubscriptionsPostgresRepository) DeleteSubscription(id int) (types.Subs
 	var startDate time.Time
 
 	if err := r.Scan(&serviceName, &price, &userID, &startDate); err != nil {
-		if err == sql.ErrNoRows {
-			return types.SubscriptionResponse{}, errors.SubscriptionNotFound
+		if errors.Is(err, sql.ErrNoRows) {
+			return types.SubscriptionResponse{}, apperrors.SubscriptionNotFound
 		}
 		return types.SubscriptionResponse{}, err
 	}

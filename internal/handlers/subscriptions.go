@@ -2,13 +2,14 @@ package handlers
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"log/slog"
 	"net/http"
 	"strconv"
 	"time"
 
-	"subscriptions-api/internal/errors"
+	"subscriptions-api/internal/apperrors"
 	"subscriptions-api/internal/responses"
 	"subscriptions-api/internal/types"
 	"subscriptions-api/internal/usecases"
@@ -143,7 +144,7 @@ func (sr *SubscriptionsRoutes) GetSubscription(w http.ResponseWriter, r *http.Re
 	sub, err := sr.uc.GetSubscription(id)
 
 	if err != nil {
-		if err == errors.SubscriptionNotFound {
+		if errors.Is(err, apperrors.SubscriptionNotFound) {
 			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 		} else {
 			sr.logger.Error("Repo Get sub", slog.Int("id", id), slog.Any("err", err))
@@ -197,7 +198,7 @@ func (sr *SubscriptionsRoutes) UpdateSubscription(w http.ResponseWriter, r *http
 	sub, err := sr.uc.UpdateSubscription(id, subReq)
 
 	if err != nil {
-		if err == errors.SubscriptionNotFound {
+		if errors.Is(err, apperrors.SubscriptionNotFound) {
 			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 		} else {
 			sr.logger.Error("Repo Update sub", slog.Int("id", id), slog.Any("obj", sub), slog.Any("err", err))
@@ -236,7 +237,7 @@ func (sr *SubscriptionsRoutes) DeleteSubscription(w http.ResponseWriter, r *http
 
 	if err != nil {
 		sr.logger.Error("Repo Update sub", slog.Int("id", id), slog.Any("obj", sub), slog.Any("err", err))
-		if err == errors.SubscriptionNotFound {
+		if errors.Is(err, apperrors.SubscriptionNotFound) {
 			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 		} else {
 			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
