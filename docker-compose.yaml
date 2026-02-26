@@ -1,7 +1,10 @@
 services:
   postgres:
     container_name: subscriptions-db
-    image: postgres
+    image: postgres:18
+    restart: unless-stopped
+    volumes:
+      - postgres_data:/var/lib/postgresql
     ports:
       - 5432:5432
     environment:
@@ -24,3 +27,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+
+volumes:
+  postgres_data:
